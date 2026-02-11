@@ -1,0 +1,430 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0b0f19 0%, #1a1f2e 100%);
+    color: #e0e6ed;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(0, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.header h1 {
+    font-size: 3rem;
+    background: linear-gradient(90deg, #00ffff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 4px;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #00ffff;
+    font-size: 1.1rem;
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+/* Main Grid Layout - 66% Video / 33% Stats */
+.main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+}
+
+/* Card Base Style */
+.card {
+    background: rgba(15, 20, 35, 0.8);
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.card h2,
+.card h3 {
+    color: #00ffff;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Video Section */
+.video-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.video-card {
+    flex: 1;
+}
+
+.video-feed {
+    width: 100%;
+    height: 450px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #00bcd4;
+    margin-bottom: 15px;
+    box-shadow: 0 0 30px rgba(0, 188, 212, 0.4), 0 0 60px rgba(0, 188, 212, 0.2);
+}
+
+.mode-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.btn-toggle {
+    background: linear-gradient(135deg, #00ffff, #00ff88);
+    color: #0b0f19;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+}
+
+.mode-indicator {
+    color: #00ff88;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 8px 16px;
+    background: rgba(0, 255, 136, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+/* Upload Section - Minimized and subtle */
+.upload-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    opacity: 0.6;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.upload-section:hover {
+    opacity: 1.0;
+    transform: translateY(-2px);
+}
+
+.upload-section h3 {
+    color: #00ffff;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.file-input {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 5px;
+    color: #e0e6ed;
+    font-size: 0.9rem;
+}
+
+.file-input::file-selector-button {
+    background: linear-gradient(135deg, #00ffff, #00ff88);
+    color: #0b0f19;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.file-input::file-selector-button:hover {
+    opacity: 0.9;
+}
+
+.btn-upload,
+.btn-reset {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-upload {
+    background: linear-gradient(135deg, #00ffff, #00ff88);
+    color: #0b0f19;
+}
+
+.btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+}
+
+.btn-reset {
+    background: rgba(255, 170, 0, 0.8);
+    color: #0b0f19;
+}
+
+.btn-reset:hover {
+    background: rgba(255, 170, 0, 1);
+    transform: translateY(-2px);
+}
+
+.upload-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.upload-status.success {
+    display: block;
+    background: rgba(0, 255, 136, 0.2);
+    border: 1px solid rgba(0, 255, 136, 0.5);
+    color: #00ff88;
+}
+
+.upload-status.error {
+    display: block;
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid rgba(255, 68, 68, 0.5);
+    color: #ff4444;
+}
+
+.upload-status.loading {
+    display: block;
+    background: rgba(0, 255, 255, 0.2);
+    border: 1px solid rgba(0, 255, 255, 0.5);
+    color: #00ffff;
+}
+
+#ppgChart {
+    max-height: 220px;
+}
+
+/* Data Section */
+.data-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-content: start;
+}
+
+/* OHI Card (Central) */
+.ohi-card {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 255, 136, 0.1));
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    text-align: center;
+    padding: 30px;
+}
+
+.ohi-value {
+    font-size: 4rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #00ffff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 15px 0;
+}
+
+.ohi-status {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.ohi-status.optimal {
+    color: #00ff88;
+    background: rgba(0, 255, 136, 0.2);
+}
+
+.ohi-status.monitor {
+    color: #ffaa00;
+    background: rgba(255, 170, 0, 0.2);
+}
+
+.ohi-status.low {
+    color: #ff4444;
+    background: rgba(255, 68, 68, 0.2);
+}
+
+.ohi-bar {
+    width: 100%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+.ohi-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffff, #00ff88);
+    transition: width 0.5s ease;
+    border-radius: 10px;
+}
+
+/* Metric Cards */
+.metric-card {
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(0, 255, 255, 0.6);
+}
+
+.metric-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #00ffff;
+    margin: 10px 0;
+}
+
+.metric-unit {
+    color: #8899aa;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Warnings Card */
+.warnings-card {
+    background: rgba(255, 68, 68, 0.1);
+    border-color: rgba(255, 68, 68, 0.3);
+}
+
+.warnings-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.warnings-list p {
+    padding: 8px;
+    margin: 5px 0;
+    background: rgba(255, 68, 68, 0.2);
+    border-radius: 5px;
+    border-left: 3px solid #ff4444;
+}
+
+.no-warnings {
+    color: #00ff88;
+    background: rgba(0, 255, 136, 0.1) !important;
+    border-left-color: #00ff88 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ohi-card {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .data-section {
+        grid-template-columns: 1fr;
+    }
+
+    .ohi-value {
+        font-size: 3rem;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.5);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.7);
+}/* Health Remark - appears when video ends with clinical assessment */
+.health-remark {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid currentColor;
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

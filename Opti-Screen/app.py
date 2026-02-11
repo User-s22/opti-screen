@@ -1,0 +1,216 @@
+from flask import Flask, render_template, Response, jsonify, request, redirect, url_for
+from werkzeug.utils import secure_filename
+from core.camera import Camera
+from core.rppg import AdvancedRPPG
+import time
+import cv2
+import numpy as np
+import os
+import threading
+
+app = Flask(__name__)
+
+# Configuration for file uploads
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialize components
+camera = Camera(source=None)
+rppg_engine = AdvancedRPPG(fps=30, window_size=300)
+
+# Global state
+current_metrics = {
+    'bpm': 0,
+    'confidence': 0,
+    'status': 'WAITING',
+    'snr_db': 0,
+    'sqi': 0,
+    'mode': 'FACE',  # Always FACE mode for this version
+    'classification': 'UNKNOWN',
+    'ohi': 0,
+    'stability': 0,
+    'anemia_ratio': 0,
+    'warnings': [],
+    'remark': ''  # Clinical remark (appears when video ends)
+}
+
+frame_count = 0
+start_time = time.time()
+processing_lock = threading.Lock()
+
+def generate_frames():
+    """Generator function for video streaming"""
+    global frame_count, current_metrics
+    
+    while True:
+        # Get frame and ROI data from camera
+        frame_bytes, roi_data = camera.get_frame()
+        
+        # Check if video ended
+        if frame_bytes is None:
+            # Video ended - generate final summary
+            print("[APP] Video ended, generating final summary...")
+            
+            with processing_lock:
+                final_summary = rppg_engine.get_final_summary()
+                
+                # Update metrics with final stable BPM and remark
+                current_metrics['bpm'] = final_summary['final_bpm']
+                current_metrics['remark'] = final_summary['remark']
+                current_metrics['total_readings'] = final_summary['total_readings']
+                current_metrics['status'] = 'VIDEO_ENDED'
+                
+                # Update classification based on final BPM
+                final_bpm = final_summary['final_bpm']
+                if final_bpm < 60:
+                    current_metrics['classification'] = 'BRADYCARDIA'
+                elif 60 <= final_bpm <= 100:
+                    current_metrics['classification'] = 'NORMAL'
+                else:
+                    current_metrics['classification'] = 'TACHYCARDIA'
+            
+            print(f"[APP] Final Summary: {final_summary['final_bpm']} BPM - {final_summary['remark']}")
+            break  # Stop generating frames
+        
+        with processing_lock:
+            frame_count += 1
+            current_time = time.time() - start_time
+            
+            # Add frame to rPPG processor
+            rppg_engine.add_frame(roi_data, current_time)
+            
+            # Process rPPG signal
+            rppg_results = rppg_engine.process_ppg_signal()
+            
+            if rppg_results['ready']:
+                # Update metrics directly from rPPG results
+                bpm = int(rppg_results['bpm'])
+                confidence = int(rppg_results['confidence'])
+                
+                # Determine classification based on BPM
+                if bpm < 48:
+                    classification = 'BRADYCARDIA'
+                elif bpm > 120:
+                    classification = 'TACHYCARDIA'
+                elif 60 <= bpm <= 100:
+                    classification = 'NORMAL'
+                else:
+                    classification = 'MONITOR'
+                
+                current_metrics = {
+                    'bpm': bpm,
+                    'confidence': confidence,
+                    'status': rppg_results['status'],
+                    'snr_db': rppg_results['snr_db'],
+                    'sqi': rppg_results['sqi'],
+                    'mode': 'FACE',
+                    'classification': classification,
+                    'ohi': confidence,  # Use confidence as OHI for simplicity
+                    'stability': rppg_results['sqi'],
+                    'anemia_ratio': 0,
+                    'warnings': [],
+                    'remark': ''  # Empty during processing, filled at video end
+                }
+            else:
+                current_metrics['status'] = 'CALIBRATING'
+                current_metrics['mode'] = 'FACE'
+        
+        # Yield frame for MJPEG stream
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        
+        time.sleep(0.02)  # Cap at ~50 FPS processing
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/status')
+def status():
+    return jsonify(current_metrics)
+
+@app.route('/toggle_mode', methods=['POST'])
+def toggle_mode():
+    """Toggle between FACE and FINGER modes"""
+    global current_metrics
+    
+    with processing_lock:
+        # Toggle mode
+        if current_metrics['mode'] == 'FACE':
+            current_metrics['mode'] = 'FINGER'
+        else:
+            current_metrics['mode'] = 'FACE'
+        
+        new_mode = current_metrics['mode']
+    
+    return jsonify({
+        'success': True,
+        'mode': new_mode,
+        'message': f'Switched to {new_mode} mode'
+    })
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['POST'])
+def upload_video():
+    global camera, rppg_engine, frame_count, start_time
+    
+    if 'video' not in request.files:
+        return jsonify({'error': 'No video file provided'}), 400
+    
+    file = request.files['video']
+    
+    if file.filename == '' or not allowed_file(file.filename):
+        return jsonify({'error': 'Invalid file'}), 400
+    
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    
+    # Reinitialize components
+    with processing_lock:
+        camera = Camera(source=filepath)
+        rppg_engine = AdvancedRPPG(fps=30, window_size=300)
+        frame_count = 0
+        start_time = time.time()
+    
+    return jsonify({
+        'success': True,
+        'message': f'Video uploaded: {filename}',
+        'filename': filename
+    })
+
+@app.route('/reset_camera', methods=['POST'])
+def reset_camera():
+    global camera, rppg_engine, frame_count, start_time
+    
+    with processing_lock:
+        camera = Camera(source=None)
+        rppg_engine = AdvancedRPPG(fps=30, window_size=300)
+        frame_count = 0
+        start_time = time.time()
+    
+    return jsonify({'success': True, 'message': 'Reset complete'})
+
+if __name__ == '__main__':
+    print("=" * 60)
+    print("🫀 Opti-Screen Round-1 Stable Demo")
+    print("=" * 60)
+    print("✓ Haar Cascade face detection")
+    print("✓ POS algorithm for rPPG")
+    print("✓ Stable BPM range: 48-120")
+    print("=" * 60)
+    print("Starting server on http://localhost:5000")
+    print("=" * 60)
+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opti-Screen | Medical Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>OPTI-SCREEN</h1>
+            <p class="subtitle">Biomedical Signal Analysis System</p>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <div class="main-grid">
+            <!-- Left: Video Feed -->
+            <div class="video-section">
+                <div class="card video-card">
+                    <h2>Video Feed</h2>
+                    <img src="{{ url_for('video_feed') }}" alt="Video Feed" class="video-feed">
+
+                    <!-- Video Upload Section -->
+                    <div class="upload-section">
+                        <h3>📹 Upload Video for Analysis</h3>
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <input type="file" id="videoFile" name="video" accept="video/*" class="file-input">
+                            <button type="submit" class="btn-upload">Upload & Analyze</button>
+                            <button type="button" id="resetCamera" class="btn-reset">Clear Video</button>
+                        </form>
+                        <div id="uploadStatus" class="upload-status"></div>
+                    </div>
+
+                    <div class="mode-toggle">
+                        <button id="modeToggle" class="btn-toggle">Toggle Mode</button>
+                        <span id="currentMode" class="mode-indicator">MODE: FINGER</span>
+                    </div>
+                </div>
+
+                <!-- PPG Waveform -->
+                <div class="card chart-card">
+                    <h2>PPG Waveform</h2>
+                    <canvas id="ppgChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right: Data Panels -->
+            <div class="data-section">
+                <!-- OHI Score (Central) -->
+                <div class="card ohi-card" id="ohiCard">
+                    <h2>Optical Health Index</h2>
+                    <div class="ohi-value" id="ohiValue">0.0</div>
+                    <div class="ohi-status" id="ohiStatus">INITIALIZING</div>
+                    <div class="ohi-bar">
+                        <div class="ohi-fill" id="ohiFill"></div>
+                    </div>
+                </div>
+
+                <!-- Heart Rate -->
+                <div class="card metric-card">
+                    <div class="metric-icon">❤️</div>
+                    <h3>Heart Rate</h3>
+                    <div class="metric-value" id="bpmValue">--</div>
+                    <div class="metric-unit">BPM</div>
+                    <div class="health-remark" id="healthRemark"></div>
+                </div>
+
+                <!-- Anemia Risk -->
+                <div class="card metric-card">
+                    <div class="metric-icon">🩸</div>
+                    <h3>Anemia Risk</h3>
+                    <div class="metric-value" id="anemiaValue">--</div>
+                    <div class="metric-unit">R/G Ratio</div>
+                </div>
+
+                <!-- Signal Quality -->
+                <div class="card metric-card">
+                    <div class="metric-icon">📊</div>
+                    <h3>Signal Quality</h3>
+                    <div class="metric-value" id="sqiValue">--</div>
+                    <div class="metric-unit">SQI %</div>
+                </div>
+
+                <!-- Stability -->
+                <div class="card metric-card">
+                    <div class="metric-icon">⚖️</div>
+                    <h3>Stability</h3>
+                    <div class="metric-value" id="stabilityValue">--</div>
+                    <div class="metric-unit">Score</div>
+                </div>
+
+                <!-- Warnings -->
+                <div class="card warnings-card">
+                    <h3>⚠️ System Warnings</h3>
+                    <div id="warningsList" class="warnings-list">
+                        <p class="no-warnings">No warnings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>
