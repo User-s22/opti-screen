@@ -22,6 +22,7 @@ A web-based application that analyzes facial video to extract heart rate (BPM) u
 - **Fallback Logic**: Always displays a result (never shows "--")
 - **Session Freeze**: Locks final metrics when video ends
 - **Polling Stop**: Prevents UI from overwriting final results
+- **Live Camera Integration**: Built-in webcam support that automatically concludes a snapshot test after exactly 30 seconds to show the final session summary result.
 
 ---
 
@@ -106,14 +107,19 @@ python app.py
 ```
 
 ### Access Dashboard
-Open browser: `http://localhost:5000`
+Open browser: `http://localhost:5000` or `http://localhost:5002`
 
-### Upload Video
+### Analyze a Video
 1. Click "Choose File"
 2. Select a face video (15-30 seconds recommended)
 3. Click "Upload & Analyze"
 4. Watch real-time BPM detection
 5. View final summary when video ends
+
+### Use Live Camera
+1. Click "Use Live Camera"
+2. Keep your face steady in front of the webcam for the 30-second duration.
+3. The dashboard will process it live and provide a finalized Session Summary when the test time is up.
 
 ---
 
@@ -349,7 +355,6 @@ Toggles between FACE/FINGER modes
 
 - [ ] Replay button functionality
 - [ ] Multiple video format support
-- [ ] Real-time webcam analysis
 - [ ] Export results to PDF
 - [ ] Historical data tracking
 - [ ] Multi-user support
