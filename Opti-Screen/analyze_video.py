@@ -5,7 +5,7 @@ Processes entire video and returns final vital signs
 """
 import cv2
 import numpy as np
-from core.rppg import AdvancedRPPG, SkinToneNormalizer
+from core.rppg import AdvancedRPPG
 from core.camera import Camera
 import sys
 
@@ -22,7 +22,6 @@ def analyze_video_complete(video_path):
     
     # Initialize
     rppg = AdvancedRPPG(fps=30, window_size=300)
-    normalizer = SkinToneNormalizer()
     camera = Camera(source=video_path)
     
     frame_count = 0
@@ -32,26 +31,26 @@ def analyze_video_complete(video_path):
     
     # Process entire video
     while True:
-        frame_bytes, avg_r, avg_g, avg_b, mode = camera.get_frame()
+        frame_bytes, roi_data, is_moving = camera.get_frame()
         
         if frame_bytes is None:
             break
-        
-        # Normalize for skin tone
-        r_norm, g_norm, b_norm = normalizer.normalize_rgb(avg_r, avg_g, avg_b)
-        
-        # Add to rPPG
-        rppg.add_frame((r_norm, g_norm, b_norm))
-        
-        # Process with POS method
-        result = rppg.process_ppg_signal(method='POS')
-        
-        if result['ready'] and result['bpm'] > 0:
-            bpm_readings.append({
-                'bpm': result['bpm'],
-                'confidence': result['confidence'],
-                'frame': frame_count
-            })
+            
+        if roi_data is not None:
+            avg_r, avg_g, avg_b = roi_data
+            
+            # Add to rPPG
+            rppg.add_frame((avg_r, avg_g, avg_b))
+            
+            # Process with POS method
+            result = rppg.process_ppg_signal()
+            
+            if result['ready'] and result['bpm'] > 0:
+                bpm_readings.append({
+                    'bpm': result['bpm'],
+                    'confidence': result['confidence'],
+                    'frame': frame_count
+                })
         
         frame_count += 1
         if frame_count % 30 == 0:
@@ -79,7 +78,7 @@ def analyze_video_complete(video_path):
             'quality': round(quality, 1),
             'frames_analyzed': frame_count,
             'valid_readings': len(bpm_readings),
-            'mode': mode
+            'mode': 'FACE'
         }
     else:
         return {

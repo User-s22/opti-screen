@@ -24,6 +24,7 @@ class Camera:
         # EMA Smoothing variables (The Fix for Haar Jitter)
         self.last_x, self.last_y, self.last_w, self.last_h = 0, 0, 0, 0
         self.alpha = 0.2  # Smoothing factor (Lower = Smoother)
+        self.is_moving = False
         
         # Video completion flag
         self.video_ended = False
@@ -48,24 +49,29 @@ class Camera:
             self.face_cascade = None
         
         # Load video source if provided
-        if source and isinstance(source, str):
+        # Load video source if provided
+        if source is not None:
             try:
-                print(f"Opening video file: {source}")
+                if isinstance(source, str):
+                    print(f"Opening video file: {source}")
+                else:
+                    print(f"Opening camera index: {source}")
+                
                 cap = cv2.VideoCapture(source)
                 
                 if cap.isOpened():
                     ret, frame = cap.read()
                     if ret and frame is not None:
-                        print(f"✓ Successfully opened video: {source}")
+                        print(f"✓ Successfully opened source: {source}")
                         self.video = cap
                         self.dummy_mode = False
                     else:
-                        print(f"Failed to read from video: {source}")
+                        print(f"Failed to read from source: {source}")
                         cap.release()
                 else:
-                    print(f"Failed to open video: {source}")
+                    print(f"Failed to open source: {source}")
             except Exception as e:
-                print(f"Error opening video: {e}")
+                print(f"Error opening video source: {e}")
         else:
             print("No video source. Waiting for upload...")
     
@@ -90,7 +96,7 @@ class Camera:
         Get frame and extract ROI
         
         Returns:
-            (frame_bytes, roi_data)
+            (frame_bytes, roi_data, is_moving)
             roi_data = None if no face detected
             roi_data = (r, g, b) if face detected
         """
@@ -98,7 +104,7 @@ class Camera:
         if self.dummy_mode:
             frame = self._create_dummy_frame()
             ret, buffer = cv2.imencode('.jpg', frame)
-            return buffer.tobytes(), None
+            return buffer.tobytes(), None, False
         
         # Read frame
         try:
@@ -107,10 +113,10 @@ class Camera:
                 # Video ended - do NOT loop
                 self.video_ended = True
                 print("[VIDEO] End of video reached")
-                return None, None
+                return None, None, False
         except Exception as e:
             print(f"Error reading frame: {e}")
-            return None, None
+            return None, None, False
         
         # Extract ROI
         roi_data = self._extract_forehead_roi(frame)
@@ -118,10 +124,10 @@ class Camera:
         # Encode frame
         try:
             ret, buffer = cv2.imencode('.jpg', frame)
-            return buffer.tobytes(), roi_data
+            return buffer.tobytes(), roi_data, self.is_moving
         except Exception as e:
             print(f"Error encoding frame: {e}")
-            return None, None
+            return None, None, False
     
     def _extract_forehead_roi(self, frame):
         """
@@ -155,9 +161,18 @@ class Camera:
             # 1. STABILIZE BOX (Exponential Moving Average)
             if self.last_w == 0:  # First frame
                 self.last_x, self.last_y, self.last_w, self.last_h = x, y, w, h
+                self.is_moving = False
             else:
-                self.last_x = int(self.alpha * x + (1 - self.alpha) * self.last_x)
-                self.last_y = int(self.alpha * y + (1 - self.alpha) * self.last_y)
+                new_x = int(self.alpha * x + (1 - self.alpha) * self.last_x)
+                new_y = int(self.alpha * y + (1 - self.alpha) * self.last_y)
+                
+                # Check for significant motion (more than 3% of face width)
+                # This helps identify head movement vs sensor jitter
+                dist = ((new_x - self.last_x)**2 + (new_y - self.last_y)**2)**0.5
+                self.is_moving = dist > (self.last_w * 0.03)
+                
+                self.last_x = new_x
+                self.last_y = new_y
                 self.last_w = int(self.alpha * w + (1 - self.alpha) * self.last_w)
                 self.last_h = int(self.alpha * h + (1 - self.alpha) * self.last_h)
             

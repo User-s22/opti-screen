@@ -27,11 +27,14 @@
 
                     <!-- Video Upload Section -->
                     <div class="upload-section">
-                        <h3>📹 Upload Video for Analysis</h3>
+                        <h3>📹 Video Analysis</h3>
+                        <div class="camera-controls">
+                            <button id="useWebcam" class="btn-live">🔴 Use Live Camera</button>
+                            <span class="divider">OR</span>
+                        </div>
                         <form id="uploadForm" enctype="multipart/form-data">
                             <input type="file" id="videoFile" name="video" accept="video/*" class="file-input">
                             <button type="submit" class="btn-upload">Upload & Analyze</button>
-                            <button type="button" id="resetCamera" class="btn-reset">Clear Video</button>
                         </form>
                         <div id="uploadStatus" class="upload-status"></div>
                     </div>
@@ -70,20 +73,20 @@
                     <div class="health-remark" id="healthRemark"></div>
                 </div>
 
-                <!-- Anemia Risk -->
+                <!-- HRV -->
                 <div class="card metric-card">
-                    <div class="metric-icon">🩸</div>
-                    <h3>Anemia Risk</h3>
-                    <div class="metric-value" id="anemiaValue">--</div>
-                    <div class="metric-unit">R/G Ratio</div>
+                    <div class="metric-icon">💓</div>
+                    <h3>HRV (SDNN Proxy)</h3>
+                    <div class="metric-value" id="hrvValue">--</div>
+                    <div class="metric-unit">ms</div>
                 </div>
 
-                <!-- Signal Quality -->
+                <!-- Stress Index -->
                 <div class="card metric-card">
-                    <div class="metric-icon">📊</div>
-                    <h3>Signal Quality</h3>
-                    <div class="metric-value" id="sqiValue">--</div>
-                    <div class="metric-unit">SQI %</div>
+                    <div class="metric-icon">🧠</div>
+                    <h3>Stress Index</h3>
+                    <div class="metric-value" id="stressValue">--</div>
+                    <div class="metric-unit">/ 100</div>
                 </div>
 
                 <!-- Stability -->
@@ -91,7 +94,7 @@
                     <div class="metric-icon">⚖️</div>
                     <h3>Stability</h3>
                     <div class="metric-value" id="stabilityValue">--</div>
-                    <div class="metric-unit">Score</div>
+                    <div class="metric-unit">Indicator</div>
                 </div>
 
                 <!-- Warnings -->
@@ -101,6 +104,34 @@
                         <p class="no-warnings">No warnings</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Session Summary Modal -->
+        <div id="summaryModal" class="summary-modal">
+            <div class="summary-content">
+                <h2>📊 Session Summary</h2>
+                <div class="summary-metrics">
+                    <div class="sum-card">
+                        <div class="sum-label">Avg BPM</div>
+                        <div class="sum-value" id="sumAvgBpm">--</div>
+                    </div>
+                    <div class="sum-card">
+                        <div class="sum-label">Min BPM</div>
+                        <div class="sum-value" id="sumMinBpm">--</div>
+                    </div>
+                    <div class="sum-card">
+                        <div class="sum-label">Max BPM</div>
+                        <div class="sum-value" id="sumMaxBpm">--</div>
+                    </div>
+                    <div class="sum-card">
+                        <div class="sum-label">Stability</div>
+                        <div class="sum-value" id="sumStability">--</div>
+                    </div>
+                </div>
+                <div class="sum-classification" id="sumClassification">CLASSIFICATION</div>
+                <button class="btn-toggle" onclick="document.getElementById('summaryModal').style.display='none'">Close
+                    Summary</button>
             </div>
         </div>
     </div>

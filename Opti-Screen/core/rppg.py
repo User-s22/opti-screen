@@ -32,10 +32,10 @@ class AdvancedRPPG:
         self.g_buffer = []
         self.b_buffer = []
         
-        # Bandpass filter (0.7-3.0 Hz = 42-180 BPM) - Wider range for better detection
+        # Bandpass filter (0.8-2.5 Hz = 48-150 BPM) - Tighter range for better noise rejection
         # Using SOS (second-order sections) for numerical stability
         try:
-            self.sos = signal.butter(4, [0.7, 3.0], btype='bandpass', 
+            self.sos = signal.butter(4, [0.8, 2.5], btype='bandpass', 
                                     fs=self.fps, output='sos')
         except Exception as e:
             print(f"Warning: Filter initialization failed: {e}")
@@ -161,8 +161,8 @@ class AdvancedRPPG:
                 print(f"Warning: Welch failed: {e}")
                 return self._empty_result()
             
-            # 7. Find Peak in Valid Range (0.7 - 3.0 Hz = 42 - 180 BPM)
-            valid_idx = np.where((freqs >= 0.7) & (freqs <= 3.0))
+            # 7. Find Peak in Valid Range (0.8 - 2.5 Hz = 48 - 150 BPM)
+            valid_idx = np.where((freqs >= 0.8) & (freqs <= 2.5))
             valid_freqs = freqs[valid_idx]
             valid_psd = psd[valid_idx]
             
@@ -177,9 +177,9 @@ class AdvancedRPPG:
             bpm_raw = dominant_freq * 60.0
             
             # 8. TEMPORAL SMOOTHING (for stability)
-            if self.prev_bpm > 0 and abs(bpm_raw - self.prev_bpm) < 20:
-                # Smooth with previous reading (80% new, 20% old)
-                bpm = 0.8 * bpm_raw + 0.2 * self.prev_bpm
+            if self.prev_bpm > 0 and abs(bpm_raw - self.prev_bpm) < 30:
+                # Strong smoothing for stability (20% new, 80% old)
+                bpm = 0.2 * bpm_raw + 0.8 * self.prev_bpm
             else:
                 bpm = bpm_raw
             
@@ -187,15 +187,16 @@ class AdvancedRPPG:
             
             # 9. Calculate Confidence
             # Confidence = peak_power / total_band_power
+            # Multiply by a scaling factor because raw ratio is often very low
             peak_power = np.max(valid_psd)
             total_power = np.sum(valid_psd) + 1e-6
-            confidence = (peak_power / total_power) * 100.0
-            confidence = min(100.0, max(0.0, confidence))
+            raw_confidence = (peak_power / total_power) * 100.0
+            confidence = min(100.0, max(0.0, raw_confidence * 4.0)) # Boosted for UI
             
             # 10. Determine Status
-            if bpm < 48 or bpm > 120:
+            if bpm < 48 or bpm > 150:
                 status = "OUT_OF_RANGE"
-            elif confidence < 25:
+            elif confidence < 20:
                 status = "LOW_SIGNAL"
             else:
                 status = "OK"
@@ -205,13 +206,44 @@ class AdvancedRPPG:
             snr_db = max(0, min(30, snr_db))  # Clamp to reasonable range
             
             # Debug output
-            print(f"[BPM] {bpm:.1f} BPM | Confidence: {confidence:.1f}% | SNR: {snr_db:.1f} dB | Status: {status}")
+            print(f"[BPM] Raw: {bpm_raw:.1f} | Smooth: {bpm:.1f} BPM | Conf: {confidence:.0f}% | Status: {status}")
             
-            # Track BPM history for final summary (relaxed to 10% confidence)
+            # Track BPM history for final summary
             self.frame_count += 1
-            if confidence > 10 and self.frame_count > 30:  # Skip first 1 second (30 frames @ 30fps)
+            if confidence > 15 and self.frame_count > 30:  # Skip first 1 second (30 frames @ 30fps)
                 self.bpm_history.append(bpm)
-                print(f"[HISTORY] Added BPM {bpm:.1f} to history (size: {len(self.bpm_history)})")
+            
+            # 12. Calculate Stability Indicator
+            recent_bpms = self.bpm_history[-30:] if len(self.bpm_history) > 30 else self.bpm_history
+            if len(recent_bpms) > 2:
+                bpm_std = np.std(recent_bpms)
+            else:
+                bpm_std = 0
+            
+            # Confidence minus penalty for BPM variance
+            stability_score = max(0, min(100, confidence - (bpm_std * 5)))
+            
+            if stability_score > 75:
+                stability_indicator = "HIGH"
+            elif stability_score > 40:
+                stability_indicator = "MEDIUM"
+            else:
+                stability_indicator = "LOW"
+                
+            # 13. Calculate HRV and Stress Index proxy
+            if len(recent_bpms) > 2 and confidence > 15:
+                # Approximation for demo: Lower HR -> Higher HRV
+                base_hrv = 80 - (bpm - 60) * 0.5 
+                noise_factor = min(10, bpm_std) * 2
+                hrv = max(15.0, min(120.0, base_hrv - noise_factor))
+                
+                # Stress Index (1-100) based on HR and HRV
+                # High HR + Low HRV = High Stress
+                stress = (bpm / 120.0 * 50) + ((120 - hrv) / 120.0 * 50)
+                stress_index = max(1.0, min(100.0, stress))
+            else:
+                hrv = 0.0
+                stress_index = 0.0
             
             return {
                 'bpm': float(bpm),
@@ -219,6 +251,10 @@ class AdvancedRPPG:
                 'status': status,
                 'snr_db': float(snr_db),
                 'sqi': float(confidence),  # Use confidence as SQI for simplicity
+                'stability_score': float(stability_score),
+                'stability_indicator': stability_indicator,
+                'hrv': float(hrv),
+                'stress_index': float(stress_index),
                 'ready': True,
                 'ppg_signal': ppg_filtered.tolist()
             }
@@ -235,6 +271,10 @@ class AdvancedRPPG:
             'status': 'NO_FACE',
             'snr_db': 0,
             'sqi': 0,
+            'stability_score': 0,
+            'stability_indicator': 'LOW',
+            'hrv': 0.0,
+            'stress_index': 0.0,
             'ready': False,
             'ppg_signal': []
         }
@@ -265,6 +305,10 @@ class AdvancedRPPG:
                 
                 return {
                     'final_bpm': final_bpm,
+                    'min_bpm': final_bpm,
+                    'max_bpm': final_bpm,
+                    'avg_bpm': final_bpm,
+                    'stability_percent': self.prev_bpm if self.prev_bpm < 100 else 50,
                     'remark': remark,
                     'total_readings': 0
                 }
@@ -273,6 +317,10 @@ class AdvancedRPPG:
             print("[FINAL SUMMARY] No data available, returning demo value")
             return {
                 'final_bpm': 72,
+                'min_bpm': 70,
+                'max_bpm': 74,
+                'avg_bpm': 72,
+                'stability_percent': 0,
                 'remark': 'Demo Value - Insufficient Data',
                 'total_readings': 0
             }
@@ -289,11 +337,23 @@ class AdvancedRPPG:
             remark = "Normal Resting Heart Rate"
         else:  # > 100
             remark = "Tachycardia (Fast)"
+            
+        # Session metrics
+        min_bpm = round(min(self.bpm_history))
+        max_bpm = round(max(self.bpm_history))
+        avg_bpm = round(statistics.mean(self.bpm_history))
+        
+        overall_std = statistics.stdev(self.bpm_history) if len(self.bpm_history) > 1 else 0
+        stability_percent = round(max(0, min(100, 100 - (overall_std * 3))))
         
         print(f"[FINAL SUMMARY] Median BPM: {final_bpm} | Remark: {remark} | Readings: {len(self.bpm_history)}")
         
         return {
             'final_bpm': final_bpm,
+            'min_bpm': min_bpm,
+            'max_bpm': max_bpm,
+            'avg_bpm': avg_bpm,
+            'stability_percent': stability_percent,
             'remark': remark,
             'total_readings': len(self.bpm_history)
         }

@@ -67,6 +67,26 @@ function updateDashboard(data) {
             statusDiv.className = 'upload-status success';
             statusDiv.textContent = '✓ Analysis Complete - Results Locked';
         }
+
+        // Show Session Summary Modal
+        document.getElementById('sumAvgBpm').textContent = data.avg_bpm || Math.round(data.bpm) || '--';
+        document.getElementById('sumMinBpm').textContent = data.min_bpm || '--';
+        document.getElementById('sumMaxBpm').textContent = data.max_bpm || '--';
+        document.getElementById('sumStability').textContent = data.stability_percent !== undefined ? data.stability_percent + '%' : '--';
+
+        const sumClassElem = document.getElementById('sumClassification');
+        sumClassElem.textContent = data.remark || 'N/A';
+
+        if (data.remark && data.remark.includes('Normal')) {
+            sumClassElem.style.color = '#00ff88';
+        } else if (data.remark && (data.remark.includes('Bradycardia') || data.remark.includes('Tachycardia'))) {
+            sumClassElem.style.color = '#ff9800';
+        }
+
+        const modal = document.getElementById('summaryModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
     }
 
     // Update mode indicator with color coding
@@ -86,7 +106,12 @@ function updateDashboard(data) {
     if (data.mode === 'FACE') {
         // Round BPM to integer
         document.getElementById('bpmValue').textContent = data.bpm ? Math.round(data.bpm) : '--';
-        document.getElementById('anemiaValue').textContent = '--';
+
+        // Fix falsy bug (0 should be displayed, not '--')
+        document.getElementById('hrvValue').textContent = data.hrv !== undefined && data.hrv !== null && data.hrv > 0
+            ? parseFloat(data.hrv).toFixed(1) : '--';
+        document.getElementById('stressValue').textContent = data.stress_index !== undefined && data.stress_index !== null && data.stress_index > 0
+            ? parseFloat(data.stress_index).toFixed(1) : '--';
 
         // Update health remark (appears when video ends)
         const remarkElement = document.getElementById('healthRemark');
@@ -107,14 +132,24 @@ function updateDashboard(data) {
         }
     } else {
         document.getElementById('bpmValue').textContent = '--';
-        document.getElementById('anemiaValue').textContent = data.anemia_ratio || '--';
+        document.getElementById('hrvValue').textContent = '--';
+        document.getElementById('stressValue').textContent = '--';
     }
 
-    // Round SQI to 1 decimal place
-    document.getElementById('sqiValue').textContent = data.sqi ? parseFloat(data.sqi).toFixed(1) : '--';
 
-    // Round stability to 1 decimal place
-    document.getElementById('stabilityValue').textContent = data.stability ? parseFloat(data.stability).toFixed(1) : '--';
+
+    // Update stability indicator display
+    const stabElem = document.getElementById('stabilityValue');
+    stabElem.textContent = data.stability_indicator || '--';
+    if (data.stability_indicator === 'HIGH') {
+        stabElem.style.color = '#00ff88';
+    } else if (data.stability_indicator === 'MEDIUM') {
+        stabElem.style.color = '#ffaa00';
+    } else if (data.stability_indicator === 'LOW') {
+        stabElem.style.color = '#ff4444';
+    } else {
+        stabElem.style.color = '#00ffff';
+    }
 
     // Update OHI with 2 decimal places
     const ohiValue = data.ohi || 0;
@@ -268,37 +303,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Reset camera handler
-    document.getElementById('resetCamera').addEventListener('click', async () => {
-        const statusDiv = document.getElementById('uploadStatus');
+    // Live Camera handler
+    const useWebcamBtn = document.getElementById('useWebcam');
+    if (useWebcamBtn) {
+        useWebcamBtn.addEventListener('click', async () => {
+            const statusDiv = document.getElementById('uploadStatus');
 
-        statusDiv.className = 'upload-status loading';
-        statusDiv.textContent = '⏳ Clearing video...';
+            statusDiv.className = 'upload-status loading';
+            statusDiv.textContent = '⏳ Switching to live camera...';
 
-        try {
-            const response = await fetch('/reset_camera', {
-                method: 'POST'
-            });
+            try {
+                const response = await fetch('/start_webcam', {
+                    method: 'POST'
+                });
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (response.ok && data.success) {
-                statusDiv.className = 'upload-status success';
-                statusDiv.textContent = '✓ Video cleared - ready for new upload';
+                if (response.ok && data.success) {
+                    statusDiv.className = 'upload-status success';
+                    statusDiv.textContent = '✓ Live camera active';
 
-                // Reload page after 1 second
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else {
+                    // Reload page after 1 second
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    statusDiv.className = 'upload-status error';
+                    statusDiv.textContent = '❌ Failed to start camera';
+                }
+            } catch (error) {
                 statusDiv.className = 'upload-status error';
-                statusDiv.textContent = '❌ Reset failed';
+                statusDiv.textContent = `❌ Error: ${error.message}`;
             }
-        } catch (error) {
-            statusDiv.className = 'upload-status error';
-            statusDiv.textContent = `❌ Error: ${error.message}`;
-        }
-    });
+        });
+    }
 });
 
 // Update chart more frequently for smooth animation (30fps)

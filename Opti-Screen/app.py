@@ -20,7 +20,7 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Initialize components
-camera = Camera(source=None)
+camera = Camera(source=0)
 rppg_engine = AdvancedRPPG(fps=30, window_size=300)
 
 # Global state
@@ -34,7 +34,8 @@ current_metrics = {
     'classification': 'UNKNOWN',
     'ohi': 0,
     'stability': 0,
-    'anemia_ratio': 0,
+    'hrv': 0,
+    'stress_index': 0,
     'warnings': [],
     'remark': ''  # Clinical remark (appears when video ends)
 }
@@ -42,15 +43,21 @@ current_metrics = {
 frame_count = 0
 start_time = time.time()
 processing_lock = threading.Lock()
+is_live_camera = False
 
 def generate_frames():
     """Generator function for video streaming"""
-    global frame_count, current_metrics
+    global frame_count, current_metrics, is_live_camera
     
     while True:
         # Get frame and ROI data from camera
-        frame_bytes, roi_data = camera.get_frame()
+        frame_bytes, roi_data, is_moving = camera.get_frame()
         
+        # Check if live camera test duration is completed
+        if is_live_camera and (time.time() - start_time > 30):
+            print("[APP] Live camera test completed (30s). Stopping...")
+            frame_bytes = None  # Force end
+            
         # Check if video ended
         if frame_bytes is None:
             # Video ended - generate final summary
@@ -60,9 +67,7 @@ def generate_frames():
                 final_summary = rppg_engine.get_final_summary()
                 
                 # Update metrics with final stable BPM and remark
-                current_metrics['bpm'] = final_summary['final_bpm']
-                current_metrics['remark'] = final_summary['remark']
-                current_metrics['total_readings'] = final_summary['total_readings']
+                current_metrics.update(final_summary)
                 current_metrics['status'] = 'VIDEO_ENDED'
                 
                 # Update classification based on final BPM
@@ -80,6 +85,11 @@ def generate_frames():
         with processing_lock:
             frame_count += 1
             current_time = time.time() - start_time
+            
+            # Motion warning
+            warnings = []
+            if is_moving:
+                warnings.append("Excessive motion detected. Please stay still.")
             
             # Add frame to rPPG processor
             rppg_engine.add_frame(roi_data, current_time)
@@ -111,14 +121,17 @@ def generate_frames():
                     'mode': 'FACE',
                     'classification': classification,
                     'ohi': confidence,  # Use confidence as OHI for simplicity
-                    'stability': rppg_results['sqi'],
-                    'anemia_ratio': 0,
-                    'warnings': [],
+                    'stability': rppg_results['stability_score'],
+                    'stability_indicator': rppg_results['stability_indicator'],
+                    'hrv': rppg_results['hrv'],
+                    'stress_index': rppg_results['stress_index'],
+                    'warnings': warnings,
                     'remark': ''  # Empty during processing, filled at video end
                 }
             else:
                 current_metrics['status'] = 'CALIBRATING'
                 current_metrics['mode'] = 'FACE'
+                current_metrics['warnings'] = warnings
         
         # Yield frame for MJPEG stream
         yield (b'--frame\r\n'
@@ -163,7 +176,7 @@ def allowed_file(filename):
 
 @app.route('/upload', methods=['POST'])
 def upload_video():
-    global camera, rppg_engine, frame_count, start_time
+    global camera, rppg_engine, frame_count, start_time, is_live_camera
     
     if 'video' not in request.files:
         return jsonify({'error': 'No video file provided'}), 400
@@ -183,6 +196,7 @@ def upload_video():
         rppg_engine = AdvancedRPPG(fps=30, window_size=300)
         frame_count = 0
         start_time = time.time()
+        is_live_camera = False
     
     return jsonify({
         'success': True,
@@ -192,15 +206,39 @@ def upload_video():
 
 @app.route('/reset_camera', methods=['POST'])
 def reset_camera():
-    global camera, rppg_engine, frame_count, start_time
+    global camera, rppg_engine, frame_count, start_time, is_live_camera
     
     with processing_lock:
         camera = Camera(source=None)
         rppg_engine = AdvancedRPPG(fps=30, window_size=300)
         frame_count = 0
         start_time = time.time()
+        is_live_camera = False
     
     return jsonify({'success': True, 'message': 'Reset complete'})
+
+@app.route('/start_webcam', methods=['POST'])
+def start_webcam():
+    global camera, rppg_engine, frame_count, start_time, is_live_camera
+    
+    with processing_lock:
+        try:
+            # Initialize new camera with webcam (index 0)
+            camera = Camera(source=0)
+            rppg_engine = AdvancedRPPG(fps=30, window_size=300)
+            frame_count = 0
+            start_time = time.time()
+            is_live_camera = True
+            
+            return jsonify({
+                'success': True,
+                'message': 'Switched to live webcam'
+            })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
 
 if __name__ == '__main__':
     print("=" * 60)
@@ -210,7 +248,8 @@ if __name__ == '__main__':
     print("✓ POS algorithm for rPPG")
     print("✓ Stable BPM range: 48-120")
     print("=" * 60)
-    print("Starting server on http://localhost:5000")
+    print("Starting server on http://localhost:5002")
     print("=" * 60)
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    app.run(debug=True, host='0.0.0.0', port=5002, threaded=True)
+
 
