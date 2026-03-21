@@ -11,6 +11,174 @@
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#2d6a4f",
+              "surface": "#111319",
+              "surface-container-high": "#282a30",
+              "on-primary-fixed-variant": "#0e5138",
+              "surface-container-low": "#191b21",
+              "outline-variant": "#404943",
+              "surface-tint": "#95d4b3",
+              "tertiary": "#E07A5F",
+              "secondary": "#d5c5a5",
+              "outline": "#8a938c",
+              "secondary-container": "#51452d",
+              "on-surface": "#e2e2ea",
+              "surface-container": "#1d1f26",
+              "tertiary-fixed-dim": "#ffb4a1",
+              "background": "#111319",
+              "secondary-fixed": "#f2e1c0",
+              "on-secondary": "#392f19",
+              "inverse-on-surface": "#2e3037",
+              "on-tertiary-fixed-variant": "#7c2e19",
+              "surface-dim": "#111319",
+              "on-secondary-fixed": "#231a06",
+              "on-tertiary-container": "#ffcfc3",
+              "on-error": "#690005",
+              "on-primary-container": "#a8e7c5",
+              "primary": "#95d4b3",
+              "tertiary-fixed": "#ffdbd2",
+              "primary-fixed": "#b1f0ce",
+              "on-tertiary-fixed": "#3c0800",
+              "surface-bright": "#373940",
+              "on-primary": "#003824",
+              "on-primary-fixed": "#002114",
+              "primary-fixed-dim": "#95d4b3",
+              "inverse-surface": "#e2e2ea",
+              "error": "#ffb4ab",
+              "on-error-container": "#ffdad6",
+              "on-secondary-container": "#c3b395",
+              "surface-container-highest": "#33353b",
+              "inverse-primary": "#2c694e",
+              "tertiary-container": "#9b452e",
+              "on-secondary-fixed-variant": "#51452d",
+              "on-background": "#e2e2ea",
+              "secondary-fixed-dim": "#d5c5a5",
+              "error-container": "#93000a",
+              "surface-container-lowest": "#0c0e14",
+              "on-surface-variant": "#bfc9c1",
+              "on-tertiary": "#5d1805",
+              "surface-variant": "#33353b"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "1rem", "xl": "1.25rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .data-label { font-family: 'Inter', sans-serif; }
+    </style>
+    <style>
+        /* Old dashboard hidden state in new ui */
+        #dashboard {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#2d6a4f",
+              "surface": "#111319",
+              "surface-container-high": "#282a30",
+              "on-primary-fixed-variant": "#0e5138",
+              "surface-container-low": "#191b21",
+              "outline-variant": "#404943",
+              "surface-tint": "#95d4b3",
+              "tertiary": "#E07A5F",
+              "secondary": "#d5c5a5",
+              "outline": "#8a938c",
+              "secondary-container": "#51452d",
+              "on-surface": "#e2e2ea",
+              "surface-container": "#1d1f26",
+              "tertiary-fixed-dim": "#ffb4a1",
+              "background": "#111319",
+              "secondary-fixed": "#f2e1c0",
+              "on-secondary": "#392f19",
+              "inverse-on-surface": "#2e3037",
+              "on-tertiary-fixed-variant": "#7c2e19",
+              "surface-dim": "#111319",
+              "on-secondary-fixed": "#231a06",
+              "on-tertiary-container": "#ffcfc3",
+              "on-error": "#690005",
+              "on-primary-container": "#a8e7c5",
+              "primary": "#95d4b3",
+              "tertiary-fixed": "#ffdbd2",
+              "primary-fixed": "#b1f0ce",
+              "on-tertiary-fixed": "#3c0800",
+              "surface-bright": "#373940",
+              "on-primary": "#003824",
+              "on-primary-fixed": "#002114",
+              "primary-fixed-dim": "#95d4b3",
+              "inverse-surface": "#e2e2ea",
+              "error": "#ffb4ab",
+              "on-error-container": "#ffdad6",
+              "on-secondary-container": "#c3b395",
+              "surface-container-highest": "#33353b",
+              "inverse-primary": "#2c694e",
+              "tertiary-container": "#9b452e",
+              "on-secondary-fixed-variant": "#51452d",
+              "on-background": "#e2e2ea",
+              "secondary-fixed-dim": "#d5c5a5",
+              "error-container": "#93000a",
+              "surface-container-lowest": "#0c0e14",
+              "on-surface-variant": "#bfc9c1",
+              "on-tertiary": "#5d1805",
+              "surface-variant": "#33353b"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "1rem", "xl": "1.25rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        .data-label { font-family: 'Inter', sans-serif; }
+    </style>
+    <style>
+        /* Old dashboard hidden state in new ui */
+        #dashboard {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -53,123 +221,213 @@
     <!-- ══════════════════════════════════════════════════════════════════
      DASHBOARD
 ══════════════════════════════════════════════════════════════════════ -->
-    <div id="dashboard" class="dashboard-hidden">
-        <div class="container">
+    
+    <div id="dashboard" class="bg-background text-on-surface flex flex-col dashboard-hidden" style="width: 100vw; height: 100vh;">
+      
+<!-- Centered Project Title at the very top -->
+<header class="w-full py-6 bg-[#1D1F26] flex justify-center items-center shrink-0 z-20 shadow-md">
+<h1 class="text-3xl font-black text-[#2D6A4F] tracking-widest uppercase">Opti-Screen</h1>
+</header>
+<div class="flex flex-grow overflow-hidden">
+<!-- SideNavBar Component -->
+<aside class="hidden md:flex flex-col h-full w-64 bg-[#1D1F26] p-6 gap-2 shrink-0 border-r border-outline-variant/10 shadow-xl">
+<nav class="flex flex-col gap-2 flex-grow">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 bg-[#282A30] text-[#95D4B3] rounded-lg px-4 py-3 border-l-4 border-[#2D6A4F] transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<!-- Patient Health -->
+<a class="flex items-center gap-3 text-[#D5C5A5] px-4 py-3 hover:bg-[#373940] hover:text-[#E2E2EA] rounded-lg transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="monitor_heart">monitor_heart</span>
+<span class="font-medium">Patient Health</span>
+</a>
+<!-- User Profile (Requested Addition to Sidebar) -->
+<a class="flex items-center gap-3 text-[#D5C5A5] px-4 py-3 hover:bg-[#373940] hover:text-[#E2E2EA] rounded-lg transition-all duration-300 ease-in-out mt-auto" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-medium">User Profile</span>
+</a>
+</nav>
+<div class="mt-4 pt-6 border-t border-outline-variant/10">
+<button id="backBtn" class="w-full py-3 px-4 rounded-full bg-gradient-to-tr from-primary-container to-primary text-on-primary font-bold text-sm shadow-lg shadow-primary-container/20 hover:opacity-90 transition-all">New Clinical Session</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col min-w-0 h-full overflow-hidden">
+<!-- Main Workspace -->
+<div class="flex-grow p-8 overflow-y-auto bg-surface-container-low">
+<div class="max-w-[1600px] mx-auto grid grid-cols-12 gap-8">
+<!-- Left Panel: Video & Signal -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-8">
+<!-- High-Quality Video Feed -->
+<div class="relative bg-surface-container-high rounded-xl overflow-hidden shadow-2xl group min-h-[400px]">
+<h2 id="feedLabel" class="hidden">Video Feed</h2><img id="videoFeed" alt="Video Feed" class="w-full h-full object-contain bg-black" style="display:none;" />
+<div class="absolute inset-0 pointer-events-none bg-gradient-to-t from-background/80 via-transparent to-transparent"></div><div id="sessionBanner" class="absolute top-2 w-full flex justify-center hidden z-10"></div>
+<div class="absolute top-6 left-6 flex items-center gap-3 bg-surface-container-highest/60 backdrop-blur-md px-4 py-2 rounded-full border border-outline-variant/20">
+<span class="w-2 h-2 rounded-full bg-[#2D6A4F] animate-pulse"></span>
+<span id="sessionStatus" class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Live Feed</span> <span id="sessionTimer" class="px-2 text-[10px] font-bold text-on-surface"></span>
+</div>
+<div class="absolute top-6 right-6 flex gap-2">
+<button class="p-2 rounded-lg bg-surface-container-highest/60 backdrop-blur-md text-on-surface hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="p-2 rounded-lg bg-surface-container-highest/60 backdrop-blur-md text-on-surface hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined">settings_overscan</span>
+</button>
+</div>
+<!-- Face Tracking UI -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-primary/20 rounded-3xl flex items-center justify-center">
+<div class="w-full h-px bg-primary/10 absolute"></div>
+<div class="h-full w-px bg-primary/10 absolute"></div>
+<div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-primary"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-primary"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-primary"></div>
+</div>
+</div>
+<!-- PPG Waveform Signal -->
+<div class="bg-surface-container-high rounded-xl p-6 shadow-lg">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h3 class="text-secondary text-sm font-semibold uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-size: 18px;">waves</span>
+                                        PPG Waveform Signal
+                                    </h3>
+<p class="text-on-surface/60 text-xs mt-1">Real-time photoplethysmogram analysis</p>
+</div>
+<div class="text-right">
+<span class="text-xs text-secondary font-medium">Confidence Readout</span>
+<div class="flex items-center gap-2 mt-1">
+<div class="w-32 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container w-[94%]"></div>
+</div>
+<span id="confidenceLabel" class="text-primary font-bold data-label text-sm">--</span>
+</div>
+</div>
+</div>
+<div class="h-32 w-full bg-surface-container-low/50 rounded-lg relative overflow-hidden flex items-center">
+<canvas id="ppgChart" class="w-full h-full"></canvas>
+</div>
+</div>
+</div>
+<!-- Right Panel: Metrics -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<!-- Heart Rate -->
+<div class="bg-surface-container-high rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-xl border-t-2 border-tertiary/20">
+<span class="material-symbols-outlined text-tertiary mb-4" style="font-size: 48px; font-variation-settings: 'FILL' 1;">favorite</span>
+<h2 class="text-secondary text-sm font-bold uppercase tracking-[0.2em] mb-2">Heart Rate</h2>
+<div class="flex items-baseline gap-2">
+<span id="bpmValue" class="text-8xl font-black text-tertiary tracking-tighter">--</span>
+<span class="text-2xl font-medium text-secondary/60 data-label">BPM</span>
+</div>
+<div id="classificationBadge" class="mt-6 px-4 py-1.5 rounded-full bg-tertiary/10 text-tertiary text-xs font-bold flex flex-col justify-center items-center gap-1 text-center">
+WAITING
+</div><div id="classificationSub" class="text-[10px] text-tertiary/70 text-center mt-1 w-full"></div>
+<div style="display:none;" id="healthRemark"></div>
+<div class="hidden">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                                Normal Resting Range
+                            </div>
+</div>
+<!-- Optical Health Index -->
+<div class="bg-surface-container-high rounded-xl p-6 flex items-center justify-between shadow-lg">
+<div>
+<h3 class="text-secondary text-xs font-bold uppercase tracking-wider mb-1">Optical Health Index</h3>
+<p class="text-on-surface/40 text-[10px] font-medium">Aggregate AI Assessment</p>
+</div>
+<div class="relative w-20 h-20 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-container-lowest" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="12.8" stroke-width="6"></circle>
+</svg>
+<span id="ohiValue" class="absolute text-xl font-bold data-label">--</span>
+</div>
+</div>
+<!-- HRV & Stress -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-high rounded-xl p-5 shadow-lg">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary-fixed text-lg">monitor_heart</span>
+<span class="text-secondary text-[10px] font-bold uppercase tracking-widest">HRV</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span id="hrvValue" class="text-2xl font-bold text-on-surface">--</span><span class="text-[10px] text-secondary/50 data-label">ms</span></div><div class="w-full h-1 mt-2 bg-surface-container-low rounded-full overflow-hidden"><div id="hrvGauge" class="h-full bg-primary" style="width:0%"></div></div>
+</div>
+<div class="bg-surface-container-high rounded-xl p-5 shadow-lg">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-tertiary text-lg">psychology</span>
+<span class="text-secondary text-[10px] font-bold uppercase tracking-widest">Stress Index</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span id="stressValue" class="text-2xl font-bold text-on-surface">--</span><span id="stressRemark" class="text-[10px] text-primary font-bold uppercase ml-1"></span></div><div class="w-full h-1 mt-2 bg-surface-container-low rounded-full overflow-hidden"><div id="stressGauge" class="h-full bg-tertiary" style="width:0%"></div></div>
+</div>
+</div>
+<!-- Environmental Tier -->
+<div class="grid grid-cols-1 gap-4">
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">balance</span>
+</div>
+<span class="text-on-surface/70 text-xs font-medium">Stability</span>
+</div>
+<span class="text-on-surface font-bold data-label text-sm"><span id="stabilityValue">--</span>%</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">light_mode</span>
+</div>
+<span class="text-on-surface/70 text-xs font-medium">Pseudo-Lux</span>
+</div>
+<span class="text-on-surface font-bold data-label text-sm"><span id="luxValue">--</span> cd/m²</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-4 border border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">motion_sensor_active</span>
+</div>
+<span class="text-on-surface/70 text-xs font-medium">Motion Delta</span>
+</div>
+</div>
+<!-- System Warnings -->
+<div class="card bg-surface-container-low rounded-xl p-4 border border-outline-variant/10">
+<h3 class="text-secondary text-xs font-bold uppercase tracking-wider mb-2">System Warnings</h3>
+<div id="warningsList" class="flex flex-col gap-2 text-xs"></div>
+</div>
+<!-- Calibration Progress -->
+<div id="calibrationBar" class="mt-auto bg-surface-container-highest/30 rounded-xl p-6 border border-outline-variant/10">
+<div class="flex justify-between items-center mb-3">
+<span id="calibrationLabel" class="text-secondary text-xs font-bold uppercase tracking-widest">Calibrating...</span>
+<span class="text-primary font-bold text-sm">85%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+<div id="calibrationFill" class="h-full bg-gradient-to-r from-primary-container via-primary to-primary rounded-full transition-all duration-300" style="width:0%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- System Status Footer -->
+<footer class="h-12 bg-surface-container shrink-0 flex items-center justify-between px-8 border-t border-outline-variant/5">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#2D6A4F]"></span>
+<span class="text-[10px] font-bold text-on-surface/80 uppercase tracking-widest">System Status: Nominal</span>
+</div>
+<div class="h-4 w-px bg-outline-variant/20"></div>
+<span class="text-[10px] font-medium text-secondary/60 uppercase tracking-widest">Secure encrypted link established</span>
+</div>
+<div class="flex items-center gap-4 text-[10px] font-bold text-secondary/40">
+<span>V2.4.0-STABLE</span>
+<span>LATENCY: 12ms</span>
+</div>
+</footer>
+</main>
+</div>
 
-            <!-- Header -->
-            <header class="header">
-                <h1>OPTI-SCREEN</h1>
-                <p class="subtitle">Research-Grade Contactless Vitals · Real-Time Dashboard</p>
-                <button class="btn-back" id="backBtn">← New Session</button>
-            </header>
+    </div>
 
-            <!-- Session countdown banner (live mode only) -->
-            <div id="sessionBanner" class="session-banner" style="display:none">
-                <span id="sessionStatus">⏳ Calibrating…</span>
-                <span id="sessionTimer"></span>
-            </div>
-
-            <!-- Calibration progress bar -->
-            <div id="calibrationBar" class="calibration-bar-container">
-                <div class="calibration-label" id="calibrationLabel">⏳ Calibrating signal… please stay still</div>
-                <div class="calibration-track">
-                    <div class="calibration-fill" id="calibrationFill" style="width:0%"></div>
-                </div>
-            </div>
-
-            <div class="main-grid">
-
-                <!-- LEFT: feed + chart -->
-                <div class="video-section">
-                    <div class="card video-card">
-                        <h2 id="feedLabel">📷 Live Video Feed</h2>
-                        <img src="" alt="Video Feed" id="videoFeed" class="video-feed" style="display:none">
-                    </div>
-                    <div class="card chart-card">
-                        <h2>📈 Real-Time PPG Waveform</h2>
-                        <canvas id="ppgChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- RIGHT: metrics -->
-                <div class="data-section">
-
-                    <!-- Classification Badge -->
-                    <div class="card classification-card" id="classificationCard">
-                        <div class="classification-badge" id="classificationBadge">WAITING</div>
-                        <div class="classification-sub" id="classificationSub">Awaiting signal…</div>
-                    </div>
-
-                    <!-- Heart Rate -->
-                    <div class="card metric-card" id="bpmCard">
-                        <div class="metric-icon">❤️</div>
-                        <h3>Heart Rate</h3>
-                        <div class="metric-value" id="bpmValue">--</div>
-                        <div class="metric-unit">BPM</div>
-                        <div class="metric-bar-track"><div class="metric-bar-fill bpm-bar" id="bpmBar" style="width:0%"></div></div>
-                        <div class="health-remark" id="healthRemark"></div>
-                    </div>
-
-                    <!-- HRV gauge -->
-                    <div class="card metric-card gauge-card">
-                        <div class="metric-icon">💜</div>
-                        <h3>HRV (RMSSD Proxy)</h3>
-                        <div class="metric-value" id="hrvValue">--</div>
-                        <div class="metric-unit">ms</div>
-                        <div class="gauge-track">
-                            <div class="gauge-fill hrv-gauge" id="hrvGauge" style="width:0%"></div>
-                        </div>
-                        <div class="gauge-labels"><span>LOW</span><span>MODERATE</span><span>HIGH</span></div>
-                    </div>
-
-                    <!-- Stress gauge -->
-                    <div class="card metric-card gauge-card">
-                        <div class="metric-icon">🧠</div>
-                        <h3>Stress Index</h3>
-                        <div class="metric-value" id="stressValue">--</div>
-                        <div class="metric-unit">Index</div>
-                        <div class="gauge-track">
-                            <div class="gauge-fill stress-gauge" id="stressGauge" style="width:0%"></div>
-                        </div>
-                        <div class="gauge-labels"><span>LOW</span><span>MODERATE</span><span>HIGH</span></div>
-                    </div>
-
-                    <!-- Confidence & Stability -->
-                    <div class="card metric-card">
-                        <div class="metric-icon">📊</div>
-                        <h3>Signal Quality</h3>
-                        <div class="metric-value" id="stabilityValue">--</div>
-                        <div class="metric-unit" id="confidenceLabel">Confidence: --%</div>
-                    </div>
-
-                    <!-- Pseudo-Lux -->
-                    <div class="card metric-card">
-                        <div class="metric-icon">💡</div>
-                        <h3>Pseudo-Lux</h3>
-                        <div class="metric-value" id="luxValue">--</div>
-                        <div class="metric-unit">0 – 255</div>
-                    </div>
-
-                    <!-- Motion Delta -->
-                    <div class="card metric-card">
-                        <div class="metric-icon">👤</div>
-                        <h3>Motion Delta</h3>
-                        <div class="metric-value" id="motionValue">--</div>
-                        <div class="metric-unit">Pixels</div>
-                    </div>
-
-                    <!-- Warnings -->
-                    <div class="card warnings-card">
-                        <h3>⚠️ System Warnings</h3>
-                        <div id="warningsList" class="warnings-list">
-                            <p class="no-warnings">✓ No warnings</p>
-                        </div>
-                    </div>
-
-                </div><!-- /data-section -->
-            </div><!-- /main-grid -->
-        </div><!-- /container -->
-    </div><!-- /dashboard -->
 
 
     <!-- ══════════════════════════════════════════════════════════════════

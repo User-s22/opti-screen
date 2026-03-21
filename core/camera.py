@@ -8,7 +8,9 @@ import numpy as np
 
 try:
     import mediapipe as mp
-    _HAS_MEDIAPIPE = True
+    _HAS_MEDIAPIPE = hasattr(mp, 'solutions')
+    if not _HAS_MEDIAPIPE:
+        print("[WARN] mediapipe installed but no solutions module — falling back to Haar Cascade")
 except ImportError:
     _HAS_MEDIAPIPE = False
     print("[WARN] mediapipe not installed — falling back to Haar Cascade")

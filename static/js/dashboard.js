@@ -343,7 +343,7 @@ function startPolling() {
 function enterDashboard(mode) {
     sessionMode = mode;
     document.getElementById('landing').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'flex';
     const label = document.getElementById('feedLabel');
     if (mode === 'video' && label) label.textContent = '🎞️ Video Analysis Feed';
 
