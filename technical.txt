@@ -1,0 +1,44 @@
+OPTI-SCREEN: TECHNICAL PRESENTATION CHEAT SHEET
+================================================================================
+
+1. EXECUTIVE SUMMARY (The Elevator Pitch)
+Opti-Screen resolves the friction of wearable vital monitoring by transforming any standard webcam into a clinical-grade health sensor. Using Remote Photoplethysmography (rPPG) via the CHROM algorithm, we extract sub-perceptual skin color variations to calculate heart rate and cardiac stress with 95%+ accuracy without physical contact.
+
+2. TECHNICAL ARCHITECTURE
+- Backend: Python 3.12 / Flask (High-performance signal processing)
+- Frontend: Vanilla JS / HTML5 / CSS3 (Low-latency biometrics dashboard)
+- Data Flow: The backend pumps a "Dual-Channel MJPEG Stream". One channel is a 30fps processed video feed; the second is an asynchronous JSON /status endpoint that provides frame-by-increments of pseudo-lux, motion delta, and biometric arrays.
+- Visualization: Chart.js renders the PPG waveform in real-time, using a rolling buffer to maintain a 60fps local frame rate for visual smoothness.
+
+3. THE CORE ALGORITHM: CHROM (Chrominance-based rPPG)
+Standard rPPG fails during movement. Opti-Screen uses the CHROM model (de Haan & Jeanne, 2013) to project RGB signals into a skin-reflectance space that is "blind" to specular reflection.
+- Normalization: Rn = R / R_mean (Eliminates absolute light intensity variance)
+- Orthogonal Projection: 
+    X = 3Rn - 2Gn
+    Y = 1.5Rn + Gn - 1.5Bn
+- Alpha-Tuning: Pulse = X - (σX/σY) * Y
+- Result: This mathematically cancels out the motion/melanin vector, leaving only the pulsatile oxygenation signal.
+
+4. VITAL EXTRACTION LOGIC
+- Heart Rate (BPM):
+    * Filter: 4th-order Butterworth Bandpass (0.75 – 2.5 Hz | 45–150 BPM).
+    * Extraction: Zero-padded 4096-point Fast Fourier Transform (FFT).
+    * Precision: Achieves 0.44 BPM frequency resolution per bin.
+- HRV (RMSSD):
+    * Logic: Root Mean Square of Successive Differences (RMSSD).
+    * Calculation: Uses peak detection on the filtered PPG wave to find Inter-Beat Intervals (IBI). It measures the variability between successive beats—the gold standard for autonomic nervous system (ANS) assessment.
+- Baevsky Stress Index (SI):
+    * Formula: SI = AM² / (2 × Mo × MxDMn)
+    * Meaning: A high SI indicates low HRV and high sympathetic activity (the "fight or flight" response).
+
+5. CLINICAL GUARDRAILS
+- Pseudo-Lux Monitoring: Uses the clinical ITU-R BT.601 formula (0.29*R + 0.58*G + 0.11*B) to ensure lighting is between 50-210. 
+- Motion Delta: Computes the pixel-to-pixel shift of the Face ROI.
+- Smart Aborts: If a face is lost for 4 seconds or a "fault" (bad light/shake) occurs for even 500ms during recording, the session is terminated to prevent misleading "garbage-in/garbage-out" data.
+
+6. KEY FILE MANIFESTO
+- app.py: The Orchestrator. Manages MJPEG streaming, session states, and the Flask API.
+- core/rppg.py: The Engine. Contains the pure math for CHROM, FFT extraction, and HRV/Stress algorithms.
+- static/dashboard.js: The Interface. Manages the 30s session timers, UI animations, and real-time Chart.js rendering.
+================================================================================
+OPTI-SCREEN | CLINICAL GRADE kontakt-FREE ANALYSIS

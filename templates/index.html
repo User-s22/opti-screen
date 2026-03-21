@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opti-Screen | Research-Grade rPPG Analysis</title>
+    <meta name="description" content="Contactless heart rate, HRV, and stress analysis using CHROM rPPG via webcam or video upload.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+     LANDING SCREEN
+══════════════════════════════════════════════════════════════════════ -->
+    <div id="landing" class="landing-overlay">
+        <div class="landing-card">
+            <div class="landing-logo">
+                <span class="logo-pulse">❤️</span>
+                <h1>OPTI-SCREEN</h1>
+                <p class="landing-sub">Research-Grade Contactless Vitals · CHROM rPPG Engine</p>
+            </div>
+
+            <div class="landing-modes">
+                <!-- Live Camera -->
+                <div class="mode-card" id="modeWebcam">
+                    <div class="mode-icon">📷</div>
+                    <h2>Live Camera</h2>
+                    <p>30-second real-time heart rate measurement using your webcam.</p>
+                    <button class="btn-mode btn-live-mode" id="startLiveBtn">Start Live Session</button>
+                </div>
+
+                <!-- Video Upload -->
+                <div class="mode-card" id="modeVideo">
+                    <div class="mode-icon">🎞️</div>
+                    <h2>Upload Video</h2>
+                    <p>Analyse a pre-recorded face video for Heart Rate, HRV, and Stress.</p>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" id="videoFile" name="video" accept="video/*" class="file-input">
+                        <button type="submit" class="btn-mode btn-upload-mode">Upload &amp; Analyse</button>
+                    </form>
+                    <div id="uploadStatus" class="upload-status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════════════════════════════════════ -->
+    <div id="dashboard" class="dashboard-hidden">
+        <div class="container">
+
+            <!-- Header -->
+            <header class="header">
+                <h1>OPTI-SCREEN</h1>
+                <p class="subtitle">Research-Grade Contactless Vitals · Real-Time Dashboard</p>
+                <button class="btn-back" id="backBtn">← New Session</button>
+            </header>
+
+            <!-- Session countdown banner (live mode only) -->
+            <div id="sessionBanner" class="session-banner" style="display:none">
+                <span id="sessionStatus">⏳ Calibrating…</span>
+                <span id="sessionTimer"></span>
+            </div>
+
+            <!-- Calibration progress bar -->
+            <div id="calibrationBar" class="calibration-bar-container">
+                <div class="calibration-label" id="calibrationLabel">⏳ Calibrating signal… please stay still</div>
+                <div class="calibration-track">
+                    <div class="calibration-fill" id="calibrationFill" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+
+                <!-- LEFT: feed + chart -->
+                <div class="video-section">
+                    <div class="card video-card">
+                        <h2 id="feedLabel">📷 Live Video Feed</h2>
+                        <img src="" alt="Video Feed" id="videoFeed" class="video-feed" style="display:none">
+                    </div>
+                    <div class="card chart-card">
+                        <h2>📈 Real-Time PPG Waveform</h2>
+                        <canvas id="ppgChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- RIGHT: metrics -->
+                <div class="data-section">
+
+                    <!-- Classification Badge -->
+                    <div class="card classification-card" id="classificationCard">
+                        <div class="classification-badge" id="classificationBadge">WAITING</div>
+                        <div class="classification-sub" id="classificationSub">Awaiting signal…</div>
+                    </div>
+
+                    <!-- Heart Rate -->
+                    <div class="card metric-card" id="bpmCard">
+                        <div class="metric-icon">❤️</div>
+                        <h3>Heart Rate</h3>
+                        <div class="metric-value" id="bpmValue">--</div>
+                        <div class="metric-unit">BPM</div>
+                        <div class="metric-bar-track"><div class="metric-bar-fill bpm-bar" id="bpmBar" style="width:0%"></div></div>
+                        <div class="health-remark" id="healthRemark"></div>
+                    </div>
+
+                    <!-- HRV gauge -->
+                    <div class="card metric-card gauge-card">
+                        <div class="metric-icon">💜</div>
+                        <h3>HRV (RMSSD Proxy)</h3>
+                        <div class="metric-value" id="hrvValue">--</div>
+                        <div class="metric-unit">ms</div>
+                        <div class="gauge-track">
+                            <div class="gauge-fill hrv-gauge" id="hrvGauge" style="width:0%"></div>
+                        </div>
+                        <div class="gauge-labels"><span>LOW</span><span>MODERATE</span><span>HIGH</span></div>
+                    </div>
+
+                    <!-- Stress gauge -->
+                    <div class="card metric-card gauge-card">
+                        <div class="metric-icon">🧠</div>
+                        <h3>Stress Index</h3>
+                        <div class="metric-value" id="stressValue">--</div>
+                        <div class="metric-unit">Index</div>
+                        <div class="gauge-track">
+                            <div class="gauge-fill stress-gauge" id="stressGauge" style="width:0%"></div>
+                        </div>
+                        <div class="gauge-labels"><span>LOW</span><span>MODERATE</span><span>HIGH</span></div>
+                    </div>
+
+                    <!-- Confidence & Stability -->
+                    <div class="card metric-card">
+                        <div class="metric-icon">📊</div>
+                        <h3>Signal Quality</h3>
+                        <div class="metric-value" id="stabilityValue">--</div>
+                        <div class="metric-unit" id="confidenceLabel">Confidence: --%</div>
+                    </div>
+
+                    <!-- Pseudo-Lux -->
+                    <div class="card metric-card">
+                        <div class="metric-icon">💡</div>
+                        <h3>Pseudo-Lux</h3>
+                        <div class="metric-value" id="luxValue">--</div>
+                        <div class="metric-unit">0 – 255</div>
+                    </div>
+
+                    <!-- Motion Delta -->
+                    <div class="card metric-card">
+                        <div class="metric-icon">👤</div>
+                        <h3>Motion Delta</h3>
+                        <div class="metric-value" id="motionValue">--</div>
+                        <div class="metric-unit">Pixels</div>
+                    </div>
+
+                    <!-- Warnings -->
+                    <div class="card warnings-card">
+                        <h3>⚠️ System Warnings</h3>
+                        <div id="warningsList" class="warnings-list">
+                            <p class="no-warnings">✓ No warnings</p>
+                        </div>
+                    </div>
+
+                </div><!-- /data-section -->
+            </div><!-- /main-grid -->
+        </div><!-- /container -->
+    </div><!-- /dashboard -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════════
+     SESSION SUMMARY MODAL  (green — shown on success)
+══════════════════════════════════════════════════════════════════════ -->
+    <div id="success-modal" class="fullscreen-modal modal-success" style="display:none">
+        <div class="modal-card">
+            <div class="modal-icon">✅</div>
+            <h2>Session Complete</h2>
+            <p class="modal-sub">Your biometric reading is ready</p>
+
+            <div class="summary-grid">
+                <div class="sum-tile">
+                    <div class="sum-label">Avg Heart Rate</div>
+                    <div class="sum-value" id="s-avg-bpm">--</div>
+                    <div class="sum-unit">BPM</div>
+                </div>
+                <div class="sum-tile">
+                    <div class="sum-label">Min BPM</div>
+                    <div class="sum-value" id="s-min-bpm">--</div>
+                    <div class="sum-unit">BPM</div>
+                </div>
+                <div class="sum-tile">
+                    <div class="sum-label">Max BPM</div>
+                    <div class="sum-value" id="s-max-bpm">--</div>
+                    <div class="sum-unit">BPM</div>
+                </div>
+                <div class="sum-tile">
+                    <div class="sum-label">HRV (RMSSD)</div>
+                    <div class="sum-value" id="s-hrv">--</div>
+                    <div class="sum-unit">ms</div>
+                </div>
+                <div class="sum-tile">
+                    <div class="sum-label">Stress Index</div>
+                    <div class="sum-value" id="s-stress">--</div>
+                    <div class="sum-unit">Index</div>
+                </div>
+                <div class="sum-tile">
+                    <div class="sum-label">Stability</div>
+                    <div class="sum-value" id="s-stability">--</div>
+                    <div class="sum-unit">%</div>
+                </div>
+            </div>
+
+            <div class="sum-classification" id="s-classification">--</div>
+            <div class="sum-remark" id="s-remark"></div>
+
+            <button class="btn-modal-action" onclick="location.reload()">🔄 New Session</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+     ABORT MODAL  (red — shown on bad lighting / motion)
+══════════════════════════════════════════════════════════════════════ -->
+    <div id="abort-modal" class="fullscreen-modal modal-abort" style="display:none">
+        <div class="modal-card">
+            <div class="modal-icon">❌</div>
+            <h2>Measurement Aborted</h2>
+            <p class="modal-sub" id="abort-reason">Unstable lighting or excessive motion detected for 3 seconds.</p>
+            <div class="abort-tips">
+                <p>💡 Ensure your face is evenly lit</p>
+                <p>🧍 Sit still and face the camera directly</p>
+                <p>🏠 Avoid strong backlighting</p>
+            </div>
+            <button class="btn-modal-action btn-abort-action" onclick="location.reload()">🔄 Try Again</button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+     INSUFFICIENT DATA MODAL
+══════════════════════════════════════════════════════════════════════ -->
+    <div id="insufficient-modal" class="fullscreen-modal modal-abort" style="display:none">
+        <div class="modal-card">
+            <div class="modal-icon">⚠️</div>
+            <h2>Insufficient Data</h2>
+            <p class="modal-sub">The analysis could not produce reliable results. Minimum 5 seconds of clean face signal is required.</p>
+            <div class="abort-tips">
+                <p>📹 Ensure the video clearly shows a face</p>
+                <p>💡 Check that lighting is adequate</p>
+                <p>🕐 Video should be at least 10 seconds long</p>
+            </div>
+            <button class="btn-modal-action btn-abort-action" onclick="location.reload()">🔄 Try Again</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>
